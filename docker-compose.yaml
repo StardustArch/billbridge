@@ -1,29 +1,30 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
+  backend:
+    build: 
+      context: ./backend
     ports:
-      - "8080:8080"
+      - "8180:8080"
     depends_on:
-      - db
-    environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=invoicedb
-      - DB_PORT=5432
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
     networks:
       - billbridge-network
 
   db:
     image: postgres:15
     ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=invoicedb
+      - "5433:5432"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

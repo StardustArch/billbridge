@@ -1,32 +1,34 @@
-FROM golang:1.24
+# Etapa 1: Build da aplicação usando a imagem base personalizada
+FROM billbridge-base:1.0 AS builder
 
 WORKDIR /app
 
-# Copy go mod and sum files
+# Copia os arquivos go.mod e go.sum primeiro (para usar o cache)
 COPY go.mod go.sum ./
 
-# Download all dependencies
+# Baixa as dependências (usará o cache se go.mod e go.sum não mudarem)
 RUN go mod download
 
-# Copy the source code
+# Copia o restante do código-fonte
 COPY . .
 
-# Build the application
+# Compila a aplicação (sem CGO, para compatibilidade com Alpine/scratch)
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main ./cmd/main.go
 
-# Create a new stage for a smaller final image
+# Etapa 2: Imagem final, enxuta, com o binário apenas
 FROM alpine:3.21.3
 
-RUN apk --no-cache add ca-certificates
-RUN apk --no-cache add libc6-compat
+# Instala certificados raiz e compatibilidade com glibc
+RUN apk --no-cache add ca-certificates libc6-compat
 
 WORKDIR /app
 
-# Copy the binary from builder
-COPY --from=0 /app/main .
+# Copia o binário da etapa de build
+COPY --from=builder /app/main .
 
-# Expose port 8080
+# Expõe a porta usada pela aplicação
 EXPOSE 8080
 
-# Command to run the application
-CMD ["./main"] 
+# Comando de execução
+CMD ["./main"]
+
