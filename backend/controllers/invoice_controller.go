@@ -59,17 +59,17 @@ func (c *InvoiceController) GetInvoice(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(invoice)
 }
 
-// GetAllInvoices retorna todas as faturas
-func (c *InvoiceController) GetAllInvoices(w http.ResponseWriter, r *http.Request) {
-	invoices, err := c.service.GetAll()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+// // GetAllInvoices retorna todas as faturas
+// func (c *InvoiceController) GetAllInvoices(w http.ResponseWriter, r *http.Request) {
+// 	invoices, err := c.service.GetAll()
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(invoices)
-}
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(invoices)
+// }
 
 // UpdateInvoice atualiza uma fatura existente
 func (c *InvoiceController) UpdateInvoice(w http.ResponseWriter, r *http.Request) {

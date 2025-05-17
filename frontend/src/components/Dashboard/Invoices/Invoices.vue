@@ -18,7 +18,7 @@
       </div>
       <button
         class="new-invoice-btn"
-        @click="$router.push('/dashboard/invoices/new')"
+        @click="$router.push('/dashboard/new-invoice')"
       >
         <i class="fas fa-plus"></i> Nova Fatura
       </button>
@@ -53,14 +53,14 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="invoice in filteredInvoices" :key="invoice.id">
-            <td>{{ invoice.clientName }}</td>
-            <td>{{ invoice.jobName }}</td>
-            <td>{{ formatDate(invoice.issueDate) }}</td>
-            <td>{{ formatCurrency(invoice.totalAmount) }}</td>
+          <tr v-for="invoice in filteredInvoices" :key="invoice.ID">
+            <td>{{ invoice.ClientName }}</td>
+            <td>{{ invoice.JobName }}</td>
+            <td>{{ formatDate(invoice.IssueDate) }}</td>
+            <td>{{ formatCurrency(invoice.TotalAmount) }}</td>
             <td>
-              <span :class="['status-badge', invoice.status.toLowerCase()]">
-                {{ invoice.status }}
+              <span :class="['status-badge', invoice.Status.toLowerCase()]">
+                {{ invoice.Status }}
               </span>
             </td>
             <td class="actions">
@@ -117,7 +117,7 @@ export default {
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
+import { getMyInvoices, deleteInvoice as deleteInvoiceById } from "@/services/invoiceService";
 
 const router = useRouter();
 const invoices = ref([]);
@@ -147,14 +147,15 @@ const formatDate = (dateString) => {
 const loadInvoices = async () => {
   loading.value = true;
   try {
-    const response = await axios.get("/api/invoices/me");
-    invoices.value = response.data;
+    const data = await getMyInvoices();
+    invoices.value = data;
   } catch (error) {
     console.error("Erro ao carregar faturas:", error);
   } finally {
     loading.value = false;
   }
 };
+
 
 // Filtrar e ordenar faturas
 const filteredInvoices = computed(() => {
@@ -165,15 +166,15 @@ const filteredInvoices = computed(() => {
     const searchTerm = filters.value.search.toLowerCase();
     filtered = filtered.filter(
       (invoice) =>
-        invoice.clientName.toLowerCase().includes(searchTerm) ||
-        invoice.jobName.toLowerCase().includes(searchTerm)
+        invoice.ClientName.toLowerCase().includes(searchTerm) ||
+        invoice.JobName.toLowerCase().includes(searchTerm)
     );
   }
 
   // Aplicar filtro de status
   if (filters.value.status) {
     filtered = filtered.filter(
-      (invoice) => invoice.status.toLowerCase() === filters.value.status
+      (invoice) => invoice.Status.toLowerCase() === filters.value.status
     );
   }
 
@@ -207,7 +208,7 @@ const sort = (field) => {
 
 // Ações
 const editInvoice = (invoice) => {
-  router.push(`/dashboard/invoices/${invoice.id}/edit`);
+  router.push(`/dashboard/invoices/${invoice.ID}/edit`);
 };
 
 const showDeleteConfirm = (invoice) => {
@@ -219,9 +220,9 @@ const deleteInvoice = async () => {
   if (!selectedInvoice.value) return;
 
   try {
-    await axios.delete(`/api/invoices/${selectedInvoice.value.id}`);
+    await deleteInvoiceById(selectedInvoice.value.ID);
     invoices.value = invoices.value.filter(
-      (inv) => inv.id !== selectedInvoice.value.id
+      (inv) => inv.ID !== selectedInvoice.value.ID
     );
     showDeleteModal.value = false;
   } catch (error) {

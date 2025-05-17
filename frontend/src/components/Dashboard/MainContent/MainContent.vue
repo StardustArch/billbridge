@@ -32,14 +32,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="invoice in recentInvoices" :key="invoice.id">
-              <td>{{ invoice.clientName }}</td>
-              <td>{{ invoice.jobName }}</td>
-              <td>{{ formatDate(invoice.issueDate) }}</td>
-              <td>{{ formatCurrency(invoice.totalAmount) }}</td>
+            <tr v-for="invoice in recentInvoices" :key="invoice.ID">
+              <td>{{ invoice.ClientName }}</td>
+              <td>{{ invoice.JobName }}</td>
+              <td>{{ formatDate(invoice.IssueDate) }}</td>
+              <td>{{ formatCurrency(invoice.TotalAmount) }}</td>
               <td>
-                <span :class="['status-badge', invoice.status.toLowerCase()]">
-                  {{ invoice.status }}
+                <span :class="['status-badge', invoice.Status.toLowerCase()]">
+                  {{ invoice.Status }}
                 </span>
               </td>
             </tr>
@@ -48,26 +48,23 @@
       </div>
     </div>
   </template>
-  
   <script setup>
   import { ref, onMounted, watch } from 'vue'
-  import axios from 'axios'
+  import { getMyInvoices } from '@/services/invoiceService'
   
-  // Data
+  // Refs principais
   const totalInvoices = ref(0)
   const totalAmount = ref(0)
   const pendingInvoices = ref(0)
   const recentInvoices = ref([])
   const loading = ref(true)
   
-  // Animação tipo contador
   const animatedStats = ref([
     { label: 'Total de Faturas', value: 0, display: 0 },
     { label: 'Valor Total', value: 0, display: 0 },
     { label: 'Pendentes', value: 0, display: 0 }
   ])
   
-  // Função para animar número com contador
   const animateValue = (stat, target, formatFn = (v) => v, duration = 1000) => {
     const start = 0
     const startTime = performance.now()
@@ -76,10 +73,10 @@
       const progress = Math.min((now - startTime) / duration, 1)
       const current = start + (target - start) * progress
       stat.display = formatFn(current)
-  
       if (progress < 1) requestAnimationFrame(step)
     }
   
+    console.log(`⏩ Iniciando animação para: "${stat.label}", alvo:`, target)
     requestAnimationFrame(step)
   }
   
@@ -94,26 +91,33 @@
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
   
-  // Carregar dados
   onMounted(async () => {
+    console.log('📦 Componente montado: carregando faturas...')
     loading.value = true
     try {
-      const response = await axios.get('/api/invoices/me')
-      const invoices = response.data
+      const invoices = await getMyInvoices()
+      console.log('✅ Faturas carregadas:', invoices)
   
       totalInvoices.value = invoices.length
-      totalAmount.value = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0)
-      pendingInvoices.value = invoices.filter(inv => inv.status === 'Pending').length
+      totalAmount.value = invoices.reduce((sum, inv) => sum + inv.TotalAmount, 0)
+      pendingInvoices.value = invoices.filter(inv => inv.Status === 'pending').length
       recentInvoices.value = invoices.slice(0, 5)
+  
+      console.log('📊 Estatísticas computadas:')
+      console.log(' - Total:', totalInvoices.value)
+      console.log(' - Valor total:', totalAmount.value)
+      console.log(' - Pendentes:', pendingInvoices.value)
+      console.log('🧾 Faturas recentes:', recentInvoices.value)
     } catch (error) {
-      console.error('Erro ao carregar faturas:', error)
+      console.error('❌ Erro ao carregar faturas:', error)
     } finally {
       loading.value = false
+      console.log('🟢 Finalizado carregamento.')
     }
   })
   
-  // Disparar animação após carregamento
   watch(loading, (val) => {
+    console.log('🔁 Mudança em loading:', val)
     if (!val) {
       animatedStats.value[0].value = totalInvoices.value
       animatedStats.value[1].value = totalAmount.value
@@ -125,6 +129,7 @@
     }
   })
   </script>
+  
   
   <style scoped>
   .dashboard-content {

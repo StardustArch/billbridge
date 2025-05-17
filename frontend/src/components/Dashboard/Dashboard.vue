@@ -44,11 +44,22 @@ export default {
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+// import { getUsername, clearAuthData } from '@/services/authService';
 
 const router = useRouter()
 const route = useRoute()
 
-const username = ref('Paulo')
+const username = ref('')
+
+// onMounted(() => {
+//   const name = getUsername()
+//   if (name) {
+//     username.value = name
+//   } else {
+//     clearAuthData()
+//     router.push('/')
+//   }
+// })
 const currentRoute = computed(() => route.path)
 
 const menuItems = [
@@ -64,7 +75,7 @@ const menuItems = [
   },
   { 
     name: 'Nova Fatura', 
-    path: '/invoices/new', 
+    path: '/dashboard/new-invoice', 
     icon: 'fas fa-plus' 
   },
   { 
@@ -75,8 +86,8 @@ const menuItems = [
 ]
 
 const handleLogout = () => {
-  // Implementar lógica de logout
-  router.push('/login')
+  // clearAuthData();
+  router.push('/')
 }
 </script>
 
@@ -96,6 +107,9 @@ const handleLogout = () => {
   left: 0;
   top: 0;
   height: 100vh;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s;  
+  background: var(--sidebar-background, #1f2937); 
 }
 
 .sidebar-header {
@@ -125,7 +139,6 @@ const handleLogout = () => {
   border-radius: 0.5rem;
   gap: 0.75rem;
 }
-
 
 .nav-item i {
   margin-right: 0.5rem;
