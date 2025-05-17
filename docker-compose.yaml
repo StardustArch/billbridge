@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  backend:
+  billbridge-backend:
     build: 
       context: ./backend
     ports:
@@ -12,10 +12,11 @@ services:
     env_file:
       - .env
     networks:
-      - billbridge-network
+      - shared-bridge
 
   db:
     image: postgres:15
+    container_name: billbridge-db
     ports:
       - "5433:5432"
     env_file:
@@ -26,13 +27,13 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - billbridge_data:/var/lib/postgresql/data
     networks:
-      - billbridge-network
+      - shared-bridge
 
 volumes:
-  postgres_data:
+  billbridge_data:
 
 networks:
-  billbridge-network:
-    driver: bridge 
+  shared-bridge:
+    external: true 
