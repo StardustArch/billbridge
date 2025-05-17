@@ -15,9 +15,11 @@ func InitRouter() *mux.Router {
 	invoiceController := controllers.NewInvoiceController()
 
 
+	// Rotas de autenticação
+	r.HandleFunc("/auth", controllers.AuthInitHandler).Methods("GET")
 	// Rotas de faturas
 	r.HandleFunc("/invoices", invoiceController.CreateInvoice).Methods("POST")
-	r.HandleFunc("/invoices", invoiceController.GetAllInvoices).Methods("GET")
+	// r.HandleFunc("/invoices", invoiceController.GetAllInvoices).Methods("GET")
 	r.Handle("/invoices/me", middleware.JWTMiddleware()(http.HandlerFunc(invoiceController.GetMyInvoices))).Methods("GET")
 	r.HandleFunc("/invoices/{id}", invoiceController.GetInvoice).Methods("GET")
 	r.HandleFunc("/invoices/{id}", invoiceController.UpdateInvoice).Methods("PUT")

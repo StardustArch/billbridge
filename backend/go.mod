@@ -13,6 +13,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/jung-kurt/gofpdf v1.16.2 // indirect
+	github.com/rs/cors v1.11.1
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
