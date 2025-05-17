@@ -5,8 +5,6 @@ import (
 	"billbridge/router"
 	"log"
 	"net/http"
-	"billbridge/database"
-	"billbridge/router"
 
 	"github.com/rs/cors"
 )
