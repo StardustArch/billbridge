@@ -38,7 +38,7 @@
               <td>{{ formatDate(invoice.IssueDate) }}</td>
               <td>{{ formatCurrency(invoice.TotalAmount) }}</td>
               <td>
-                <span :class="['status-badge', invoice.Status.toLowerCase()]">
+                <span :class="['status-badge', invoice.Status.toLowerCase() === 'Confirmed' ? 'paid' : invoice.Status.toLowerCase() === 'pending' ? 'pending' : 'overdue']">
                   {{ invoice.Status }}
                 </span>
               </td>
@@ -76,7 +76,6 @@
       if (progress < 1) requestAnimationFrame(step)
     }
   
-    console.log(`⏩ Iniciando animação para: "${stat.label}", alvo:`, target)
     requestAnimationFrame(step)
   }
   
@@ -92,32 +91,24 @@
   }
   
   onMounted(async () => {
-    console.log('📦 Componente montado: carregando faturas...')
     loading.value = true
     try {
       const invoices = await getMyInvoices()
-      console.log('✅ Faturas carregadas:', invoices)
   
       totalInvoices.value = invoices.length
       totalAmount.value = invoices.reduce((sum, inv) => sum + inv.TotalAmount, 0)
-      pendingInvoices.value = invoices.filter(inv => inv.Status === 'pending').length
+      pendingInvoices.value = invoices.filter(inv => inv.Status === 'Pending').length
       recentInvoices.value = invoices.slice(0, 5)
   
-      console.log('📊 Estatísticas computadas:')
-      console.log(' - Total:', totalInvoices.value)
-      console.log(' - Valor total:', totalAmount.value)
-      console.log(' - Pendentes:', pendingInvoices.value)
-      console.log('🧾 Faturas recentes:', recentInvoices.value)
+
     } catch (error) {
-      console.error('❌ Erro ao carregar faturas:', error)
+      console.error('Erro ao carregar faturas:', error)
     } finally {
       loading.value = false
-      console.log('🟢 Finalizado carregamento.')
     }
   })
   
   watch(loading, (val) => {
-    console.log('🔁 Mudança em loading:', val)
     if (!val) {
       animatedStats.value[0].value = totalInvoices.value
       animatedStats.value[1].value = totalAmount.value

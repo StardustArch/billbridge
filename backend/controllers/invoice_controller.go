@@ -158,3 +158,14 @@ func (c *InvoiceController) GetMyInvoices(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(invoices)
 }
+
+// GetTaxRules retorna todas as regras de imposto ativas
+func (c *InvoiceController) GetTaxRules(w http.ResponseWriter, r *http.Request) {
+	taxRules, err := c.service.GetTaxRules()
+	if err != nil {
+		http.Error(w, "Erro ao buscar regras de imposto", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(taxRules)
+}

@@ -13,7 +13,7 @@
         Esse acesso integrado garante uma experiência unificada, segura e simples para gerenciar suas faturas e análises.
       </p>
 
-      <button @click="router.push('/dashboard')" class="redirect-button">
+      <button @click="redirectToWorkBridge" class="redirect-button">
         Acessar com WorkBridge
       </button>
     </div>
@@ -26,8 +26,9 @@ export default {
 </script>
 
 <script setup>
-import { useRouter } from 'vue-router';
-const router = useRouter();
+function redirectToWorkBridge() {
+  window.open('http://localhost:4200', '_blank') // ou '_self' para mesma aba
+}
 </script>
 
 <style scoped>

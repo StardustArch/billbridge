@@ -16,7 +16,6 @@ func InitRouter() *mux.Router {
 
 
 	// Rotas de autenticação
-	r.HandleFunc("/auth", controllers.AuthInitHandler).Methods("GET")
 	// Rotas de faturas
 	r.HandleFunc("/invoices", invoiceController.CreateInvoice).Methods("POST")
 	// r.HandleFunc("/invoices", invoiceController.GetAllInvoices).Methods("GET")
@@ -25,7 +24,7 @@ func InitRouter() *mux.Router {
 	r.HandleFunc("/invoices/{id}", invoiceController.UpdateInvoice).Methods("PUT")
 	r.HandleFunc("/invoices/{id}", invoiceController.DeleteInvoice).Methods("DELETE")
 	r.HandleFunc("/invoices/{id}/pdf", invoiceController.GetInvoicePDF).Methods("GET")
-
+	r.HandleFunc("/taxes", invoiceController.GetTaxRules).Methods("GET")
 
 	// r.HandleFunc("/invoices/{id}/email", invoiceController.EmailInvoice).Methods("POST")
 

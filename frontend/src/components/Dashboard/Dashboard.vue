@@ -42,30 +42,44 @@ export default {
 }
 </script>
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-// import { getUsername, clearAuthData } from '@/services/authService';
+import authService from '@/services/authService'
+
+
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+const userJson = params.get('user');
+const username = ref('')
+if (token && userJson) {
+  try {
+
+    authService.saveAuthData(token, userJson);
+
+ 
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } catch (e) {
+    console.error('Erro ao parsear user JSON:', e);
+  }
+}
+
+onMounted(() => {
+  username.value = JSON.parse(authService.getUsername()).username;
+  router.push('/dashboard/overview');
+})
 
 const router = useRouter()
 const route = useRoute()
 
-const username = ref('')
 
-// onMounted(() => {
-//   const name = getUsername()
-//   if (name) {
-//     username.value = name
-//   } else {
-//     clearAuthData()
-//     router.push('/')
-//   }
-// })
+
+
 const currentRoute = computed(() => route.path)
 
 const menuItems = [
   { 
     name: 'Dashboard', 
-    path: '/dashboard', 
+    path: '/dashboard/overview', 
     icon: 'fas fa-chart-line' 
   },
   { 
@@ -86,7 +100,7 @@ const menuItems = [
 ]
 
 const handleLogout = () => {
-  // clearAuthData();
+  authService.clearAuthData();
   router.push('/')
 }
 </script>
@@ -164,6 +178,7 @@ const handleLogout = () => {
 
 .username {
   font-weight: 600;
+  font-size: larger;
 }
 
 .logout-btn {

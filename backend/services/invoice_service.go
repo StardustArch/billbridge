@@ -83,7 +83,7 @@ func (s *InvoiceService) ApplyTaxRule(invoice *models.Invoice) error {
 
 	// Aplicar a taxa de imposto ao invoice
 	invoice.TaxRate = taxRule.Rate
-	invoice.TaxAmount = invoice.TotalAmount * taxRule.Rate
+	invoice.TaxAmount = invoice.TotalAmount * (taxRule.Rate/100)
 	return nil
 }
 func (s *InvoiceService) GeneratePDFBytes(invoice *models.Invoice) ([]byte, error) {
@@ -97,4 +97,10 @@ func (s *InvoiceService) GetByProviderName(name string) ([]models.Invoice, error
 		return nil, err
 	}
 	return invoices, nil
+}
+
+func (s *InvoiceService) GetTaxRules() ([]models.TaxRule, error) {
+	var taxRules []models.TaxRule
+	result := database.DB.Where("active = ?", true).Find(&taxRules)
+	return taxRules, result.Error
 }

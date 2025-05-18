@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from "./authService";
 // import { getToken } from "./authService";
 
 
@@ -27,6 +28,7 @@ const API_URL =  "http://localhost:8180";
  * @returns {Promise<Invoice>}
  */
 export const createInvoice = async (invoice) => {
+  
   const res = await axios.post(`${API_URL}/invoices`, invoice);
   return res.data;
 };
@@ -68,10 +70,9 @@ export const deleteInvoice = async (id) => {
 export const getMyInvoices = async () => {
   const res = await axios.get(`${API_URL}/invoices/me`, {
     headers: {
-      Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwYXVsbyIsImlhdCI6MTc0NzQ3Njk3OCwiZXhwIjoxNzQ3NTYzMzc4fQ.9XLTqJ2pbneZHEFTw3XYNePoyRKyXZGWVPvCrXOIdPQ`
+      Authorization: `Bearer ${getToken()}`
     }
   });
-  console.log(res.data);
   return res.data;
 };
 
@@ -97,3 +98,19 @@ export const downloadInvoicePDF = async (id) => {
   document.body.removeChild(link);
 };
 
+/**
+ * @typedef {Object} TaxRule
+ * @property {string} country
+ * @property {string} region
+ * @property {string} currency
+ * @property {number} rate
+ */
+
+/**
+ * Buscar todas as regras de taxa ativas
+ * @returns {Promise<TaxRule[]>}
+ */
+export const getAllTaxRules = async () => {
+  const res = await axios.get(`${API_URL}/taxes`);
+  return res.data;
+};

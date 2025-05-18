@@ -12,8 +12,8 @@
         <select v-model="filters.status" class="status-filter">
           <option value="">Todos os Status</option>
           <option value="pending">Pendente</option>
-          <option value="paid">Pago</option>
-          <option value="overdue">Atrasado</option>
+          <option value="confirmed">Pago</option>
+          <option value="cancelled">Cancelado</option>
         </select>
       </div>
       <button
@@ -31,23 +31,23 @@
           <tr>
             <th @click="sort('clientName')">
               Cliente
-              <i class="fas fa-sort"></i>
+
             </th>
             <th @click="sort('jobName')">
               Trabalho
-              <i class="fas fa-sort"></i>
+              
             </th>
             <th @click="sort('issueDate')">
               Data
-              <i class="fas fa-sort"></i>
+              
             </th>
             <th @click="sort('totalAmount')">
               Valor
-              <i class="fas fa-sort"></i>
+              
             </th>
             <th @click="sort('status')">
               Status
-              <i class="fas fa-sort"></i>
+              
             </th>
             <th>Ações</th>
           </tr>
@@ -59,12 +59,12 @@
             <td>{{ formatDate(invoice.IssueDate) }}</td>
             <td>{{ formatCurrency(invoice.TotalAmount) }}</td>
             <td>
-              <span :class="['status-badge', invoice.Status.toLowerCase()]">
+              <span :class="['status-badge', invoice.Status.toLowerCase() === 'Confirmed' ? 'paid' : invoice.Status.toLowerCase() === 'pending' ? 'pending' : 'overdue']">
                 {{ invoice.Status }}
               </span>
             </td>
             <td class="actions">
-              <button @click="editInvoice(invoice)" class="action-btn edit">
+              <button @click="editInvoiceModal(invoice)" class="action-btn edit">
                 <i class="fas fa-edit"></i>
               </button>
               <button
@@ -72,6 +72,12 @@
                 class="action-btn delete"
               >
                 <i class="fas fa-trash"></i>
+              </button>
+              <button
+                @click="generatePdf(invoice)"
+                class="action-btn pdf"
+              >
+                <i class="fas fa-file-pdf"></i>
               </button>
             </td>
           </tr>
@@ -106,6 +112,14 @@
       </div>
     </div>
   </div>
+  <EditInvoiceModal
+  v-if="showEditModal"
+  :show="showEditModal"
+  :invoice="editingInvoice"
+  @close="showEditModal = false"
+  @updated="handleInvoiceUpdated"
+/>
+
 </template>
 
 <script>
@@ -116,15 +130,64 @@ export default {
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { getMyInvoices, deleteInvoice as deleteInvoiceById } from "@/services/invoiceService";
 
-const router = useRouter();
+import { getMyInvoices, deleteInvoice as deleteInvoiceById, updateInvoice, downloadInvoicePDF } from "@/services/invoiceService";
+import EditInvoiceModal from '@/components/EditInvoice/EditInvoiceModal.vue'
+import { nextTick } from 'vue'
+
+const showEditModal = ref(false)
+const editingInvoice = ref(null)
+
+
 const invoices = ref([]);
 const loading = ref(true);
 const showDeleteModal = ref(false);
 const selectedInvoice = ref(null);
 const sortConfig = ref({ field: "issueDate", ascending: false });
+
+const editInvoiceModal = async (invoice) => {
+  editingInvoice.value = { ...invoice }
+  await nextTick()
+  showEditModal.value = true
+}
+const handleInvoiceUpdated = async (updated) => {
+  // Cria um objeto personalizado a partir do invoice atualizado
+  const customInvoice = {
+    ID: updated.ID,
+    ClientName: updated.clientName,
+    Country: updated.country,
+    Currency: updated.currency,
+    DueDate: updated.dueDate,
+    IssueDate: updated.issueDate,
+    JobName: updated.jobName,
+    ProviderName: updated.providerName,
+    Region: updated.region,
+    Status: updated.status,
+    TaxAmount: updated.taxAmount,
+    TotalAmount: updated.totalAmount,
+    // aqui pode montar só os campos que quiser mandar para o backend
+  };
+
+  try {
+    // Chama o service para atualizar no backend
+    const updatedFromServer = await updateInvoice(updated.ID, customInvoice);
+
+    // Atualiza o invoice localmente na lista
+    const index = invoices.value.findIndex(inv => inv.ID === updatedFromServer.ID);
+    if (index !== -1) {
+      invoices.value[index] = updatedFromServer;
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar invoice:', error);
+  }
+};
+
+const generatePdf = (invoice) => {
+  // Implementar lógica para gerar PDF da fatura
+  downloadInvoicePDF(invoice.ID);
+  // console.log("Gerar PDF para a fatura:", invoice);
+};
+
 
 const filters = ref({
   search: "",
@@ -180,18 +243,26 @@ const filteredInvoices = computed(() => {
 
   // Aplicar ordenação
   filtered.sort((a, b) => {
-    let aVal = a[sortConfig.value.field];
-    let bVal = b[sortConfig.value.field];
+  let aVal = a[sortConfig.value.field];
+  let bVal = b[sortConfig.value.field];
 
-    if (typeof aVal === "string") {
-      aVal = aVal.toLowerCase();
-      bVal = bVal.toLowerCase();
-    }
+  if (typeof aVal === "string") {
+    aVal = aVal.toLowerCase();
+  } else if (aVal === undefined || aVal === null) {
+    aVal = "";
+  }
 
-    if (aVal < bVal) return sortConfig.value.ascending ? -1 : 1;
-    if (aVal > bVal) return sortConfig.value.ascending ? 1 : -1;
-    return 0;
-  });
+  if (typeof bVal === "string") {
+    bVal = bVal.toLowerCase();
+  } else if (bVal === undefined || bVal === null) {
+    bVal = "";
+  }
+
+  if (aVal < bVal) return sortConfig.value.ascending ? -1 : 1;
+  if (aVal > bVal) return sortConfig.value.ascending ? 1 : -1;
+  return 0;
+});
+
 
   return filtered;
 });
@@ -206,11 +277,7 @@ const sort = (field) => {
   }
 };
 
-// Ações
-const editInvoice = (invoice) => {
-  router.push(`/dashboard/invoices/${invoice.ID}/edit`);
-};
-
+// Ações de Deleção
 const showDeleteConfirm = (invoice) => {
   selectedInvoice.value = invoice;
   showDeleteModal.value = true;

@@ -1,4 +1,6 @@
-// Salva o token e o usuário
+
+
+
 export const saveAuthData = (token, username) => {
     localStorage.setItem('authToken', token);
     localStorage.setItem('authUser', JSON.stringify({ username }));

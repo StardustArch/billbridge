@@ -28,52 +28,76 @@ export default {
     name: "AnalyticsDashboard"
   };
 </script>
-  <script setup>
-  import { onMounted } from "vue";
-  import Chart from "chart.js/auto";
-  
-  onMounted(() => {
-    // Gráfico de vendas mensais (linha)
-    new Chart(document.getElementById("monthlySalesChart"), {
-      type: "line",
-      data: {
-        labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-        datasets: [{
-          label: "Vendas (MZN)",
-          data: [12000, 18000, 15000, 20000, 24000, 22000],
-          fill: false,
-          borderColor: "#1e88e5",
-          tension: 0.4,
-        }]
-      }
-    });
-  
-    // Gráfico de serviços vendidos (barra)
-    new Chart(document.getElementById("servicesChart"), {
-      type: "bar",
-      data: {
-        labels: ["Design", "Dev Web", "Marketing", "SEO", "Consultoria"],
-        datasets: [{
-          label: "Qtd. Vendida",
-          data: [12, 19, 9, 14, 7],
-          backgroundColor: "#10b981",
-        }]
-      }
-    });
-  
-    // Gráfico de status das faturas (doughnut)
-    new Chart(document.getElementById("invoiceStatusChart"), {
-      type: "doughnut",
-      data: {
-        labels: ["Pagas", "Pendentes", "Atrasadas"],
-        datasets: [{
-          data: [60, 25, 15],
-          backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
-        }]
-      }
-    });
-  });
-  </script>
+<script setup>
+import { onMounted } from 'vue'
+import Chart from 'chart.js/auto'
+import { getMyInvoices } from '@/services/invoiceService'
+
+onMounted(async () => {
+  const invoices = await getMyInvoices()
+
+  // 1. Vendas Mensais
+  const monthlyTotals = Array(12).fill(0)
+  invoices.forEach(inv => {
+    const month = new Date(inv.IssueDate).getMonth() // 0-11
+    monthlyTotals[month] += inv.TotalAmount
+  })
+  const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+  new Chart(document.getElementById("monthlySalesChart"), {
+    type: "line",
+    data: {
+      labels: monthLabels,
+      datasets: [{
+        label: "Vendas (MZN)",
+        data: monthlyTotals,
+        fill: false,
+        borderColor: "#1e88e5",
+        tension: 0.4,
+      }]
+    }
+  })
+
+  // 2. Serviços Vendidos
+  const serviceCount = {}
+invoices.forEach(inv => {
+  if (inv.Status === "Confirmed") {
+    serviceCount[inv.JobName] = (serviceCount[inv.JobName] || 0) + 1
+  }
+})
+  const serviceLabels = Object.keys(serviceCount)
+  const serviceValues = Object.values(serviceCount)
+  new Chart(document.getElementById("servicesChart"), {
+    type: "bar",
+    data: {
+      labels: serviceLabels,
+      datasets: [{
+        label: "Qtd. Vendida",
+        data: serviceValues,
+        backgroundColor: "#10b981",
+      }]
+    }
+  })
+
+  // 3. Status das Faturas
+  const statusCount = {}
+  invoices.forEach(inv => {
+    statusCount[inv.Status] = (statusCount[inv.Status] || 0) + 1
+  })
+  const statusLabels = Object.keys(statusCount)
+  const statusValues = Object.values(statusCount)
+  new Chart(document.getElementById("invoiceStatusChart"), {
+    type: "doughnut",
+    data: {
+      labels: statusLabels,
+      datasets: [{
+        data: statusValues,
+        backgroundColor: ["#10b981", "#f59e0b", "#ef4444", "#3b82f6"],
+      }]
+    }
+  })
+})
+</script>
+
   
   <style scoped>
   .analytics-dashboard {
@@ -88,18 +112,23 @@ export default {
   }
   
   .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
   
+
   .chart-card {
-    background: white;
-    padding: 1.5rem;
     border-radius: 1rem;
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
-  }
-  
+    background: white;
+  width: 70%;
+  max-width: 900px;
+  margin: 0 auto;
+  margin-bottom: 7rem;
+  /* height: 300px; */
+}
+
   .chart-card h3 {
     font-size: 1.1rem;
     margin-bottom: 1rem;
