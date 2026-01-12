@@ -1,6 +1,6 @@
 module billbridge
 
-go 1.23.0
+go 1.24.0
 
 require github.com/dgrijalva/jwt-go v3.2.0+incompatible
 
@@ -14,9 +14,9 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/rs/cors v1.11.1
-	golang.org/x/crypto v0.35.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.26.0
 )
